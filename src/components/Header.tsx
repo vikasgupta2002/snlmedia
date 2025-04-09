@@ -26,7 +26,7 @@ const Header = () => {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <span className="text-2xl font-bold text-aajtak">AAJTAK</span>
+              <span className="text-2xl font-bold text-aajtak">SNL Media</span>
               <span className="ml-1 text-xs font-semibold bg-aajtak text-white rounded px-1 py-0.5">INSIGHTS</span>
             </Link>
           </div>

@@ -10,7 +10,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center mb-4">
-              <span className="text-2xl font-bold text-white">AAJTAK</span>
+              <span className="text-2xl font-bold text-white">SNL Media</span>
               <span className="ml-1 text-xs font-semibold bg-aajtak text-white rounded px-1 py-0.5">INSIGHTS</span>
             </div>
             <p className="text-slate-300 text-sm mb-4">
@@ -77,7 +77,7 @@ const Footer = () => {
       
       <div className="bg-slate-950 py-4">
         <div className="news-container text-center text-slate-400 text-sm">
-          <p>© {new Date().getFullYear()} Aajtak Insights. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} SNL Media Insights. All rights reserved.</p>
         </div>
       </div>
     </footer>
