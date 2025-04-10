@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 
+// Define the NewsArticle type using the Database type
 type NewsArticle = Database['public']['Tables']['news_articles']['Row'];
 
 interface LatestNewsSliderProps {
@@ -19,6 +20,7 @@ const LatestNewsSlider = ({ isBreaking = false }: LatestNewsSliderProps) => {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev === articles.length - 1 ? 0 : prev + 1));
@@ -31,6 +33,9 @@ const LatestNewsSlider = ({ isBreaking = false }: LatestNewsSliderProps) => {
   useEffect(() => {
     const fetchLatestArticles = async () => {
       try {
+        setLoading(true);
+        setError(null);
+        
         let query = supabase
           .from('news_articles')
           .select('*')
@@ -42,15 +47,17 @@ const LatestNewsSlider = ({ isBreaking = false }: LatestNewsSliderProps) => {
           query = query.eq('is_breaking', true);
         }
 
-        const { data, error } = await query;
+        const { data, error: supabaseError } = await query;
 
-        if (error) {
-          console.error('Error fetching latest news:', error);
+        if (supabaseError) {
+          console.error('Error fetching latest news:', supabaseError);
+          setError('Failed to load news articles');
         } else {
           setArticles(data || []);
         }
-      } catch (error) {
-        console.error('Unexpected error:', error);
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        setError('An unexpected error occurred');
       } finally {
         setLoading(false);
       }
@@ -72,7 +79,8 @@ const LatestNewsSlider = ({ isBreaking = false }: LatestNewsSliderProps) => {
           { 
             event: 'INSERT', 
             schema: 'public', 
-            table: 'news_articles'
+            table: 'news_articles',
+            filter: isBreaking ? 'is_breaking=eq.true' : undefined
           }, 
           (payload) => {
             console.log('New article added:', payload);
@@ -106,13 +114,28 @@ const LatestNewsSlider = ({ isBreaking = false }: LatestNewsSliderProps) => {
     );
   }
 
+  // Error state
+  if (error) {
+    return (
+      <div className="mb-8">
+        <Card className="overflow-hidden rounded-lg">
+          <CardContent className="p-6 text-center">
+            <p className="text-red-500">{error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // No articles
   if (articles.length === 0) {
     return (
       <div className="mb-8">
         <Card className="overflow-hidden rounded-lg">
           <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">No breaking news available</p>
+            <p className="text-muted-foreground">
+              {isBreaking ? "No breaking news available at the moment" : "No news articles available"}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -140,7 +163,7 @@ const LatestNewsSlider = ({ isBreaking = false }: LatestNewsSliderProps) => {
                   <div className="absolute bottom-0 left-0 p-4 text-white w-full">
                     <div className="flex items-center mb-2">
                       <span className="text-xs font-medium bg-aajtak px-2 py-0.5 rounded-sm mr-2">
-                        {article.category || 'Breaking'}
+                        {article.category || (isBreaking ? 'Breaking' : 'News')}
                       </span>
                       <span className="text-xs opacity-75">
                         {new Date(article.created_at || '').toLocaleString()}

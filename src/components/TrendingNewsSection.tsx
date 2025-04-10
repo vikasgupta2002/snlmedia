@@ -1,35 +1,41 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { TrendingUp } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 
+// Define the NewsArticle type using the Database type
 type NewsArticle = Database['public']['Tables']['news_articles']['Row'];
 
 const TrendingNewsSection = () => {
-  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [trendingArticles, setTrendingArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTrendingArticles = async () => {
       try {
-        const { data, error } = await supabase
+        setLoading(true);
+        setError(null);
+        
+        const { data, error: supabaseError } = await supabase
           .from('news_articles')
           .select('*')
           .eq('is_trending', true)
           .order('created_at', { ascending: false })
           .limit(5);
 
-        if (error) {
-          console.error('Error fetching trending news:', error);
+        if (supabaseError) {
+          console.error('Error fetching trending news:', supabaseError);
+          setError('Failed to load trending articles');
         } else {
-          setArticles(data || []);
+          setTrendingArticles(data || []);
         }
-      } catch (error) {
-        console.error('Unexpected error:', error);
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        setError('An unexpected error occurred');
       } finally {
         setLoading(false);
       }
@@ -37,7 +43,7 @@ const TrendingNewsSection = () => {
 
     fetchTrendingArticles();
 
-    // Set up real-time subscription for trending news updates
+    // Set up real-time subscription for trend changes
     const channel = supabase
       .channel('trending-news-changes')
       .on('postgres_changes', 
@@ -45,7 +51,7 @@ const TrendingNewsSection = () => {
             event: 'INSERT', 
             schema: 'public', 
             table: 'news_articles',
-            filter: 'is_trending=eq.true'
+            filter: 'is_trending=eq.true' 
           }, 
           (payload) => {
             console.log('New trending article added:', payload);
@@ -59,77 +65,75 @@ const TrendingNewsSection = () => {
     };
   }, []);
 
+  // Loading state
   if (loading) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center text-lg font-bold">
-            <TrendingUp className="mr-2 h-5 w-5 text-aajtak" />
-            Trending Now
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4">
-          <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <div key={item} className="flex gap-3 border-b pb-3 last:border-b-0 last:pb-0">
-                <Skeleton className="h-5 w-5 rounded-full" />
-                <div className="w-full">
-                  <Skeleton className="h-4 w-3/4 mb-2" />
-                  <Skeleton className="h-3 w-1/4" />
-                </div>
+      <Card className="overflow-hidden">
+        <CardContent className="p-4">
+          <h2 className="text-xl font-bold mb-4">Trending Now</h2>
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex items-start space-x-3 mb-4">
+              <Skeleton className="h-16 w-16 rounded-md" />
+              <div className="flex-1">
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-3 w-1/2" />
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
     );
   }
 
-  if (articles.length === 0) {
+  // Error state
+  if (error) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center text-lg font-bold">
-            <TrendingUp className="mr-2 h-5 w-5 text-aajtak" />
-            Trending Now
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4 text-center">
-          <p className="text-muted-foreground">No trending news available</p>
+      <Card className="overflow-hidden">
+        <CardContent className="p-4">
+          <h2 className="text-xl font-bold mb-4">Trending Now</h2>
+          <p className="text-red-500">{error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // No trending articles
+  if (trendingArticles.length === 0) {
+    return (
+      <Card className="overflow-hidden">
+        <CardContent className="p-4">
+          <h2 className="text-xl font-bold mb-4">Trending Now</h2>
+          <p className="text-muted-foreground">No trending news at the moment</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center text-lg font-bold">
-          <TrendingUp className="mr-2 h-5 w-5 text-aajtak" />
-          Trending Now
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pb-4">
-        <ul className="space-y-4">
-          {articles.map((article, index) => (
-            <li key={article.id} className="border-b pb-3 last:border-b-0 last:pb-0">
-              <Link to={`/news/${article.id}`} className="group">
-                <div className="flex gap-3">
-                  <span className="text-aajtak font-bold">{index + 1}</span>
-                  <div>
-                    <p className="font-medium group-hover:text-aajtak transition-colors line-clamp-2">{article.title}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(article.created_at || '').toLocaleString(undefined, {
-                        dateStyle: 'medium',
-                        timeStyle: 'short'
-                      })}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+    <Card className="overflow-hidden">
+      <CardContent className="p-4">
+        <h2 className="text-xl font-bold mb-4">Trending Now</h2>
+        {trendingArticles.map((article) => (
+          <Link key={article.id} to={`/news/${article.id}`}>
+            <div className="flex items-start space-x-3 mb-4 group">
+              <div className="h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
+                <img 
+                  src={article.image_url || 'https://picsum.photos/id/1/200/200'} 
+                  alt={article.title} 
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-sm line-clamp-2 group-hover:text-aajtak transition-colors">
+                  {article.title}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {article.category || 'Trending'}
+                </p>
+              </div>
+            </div>
+          </Link>
+        ))}
       </CardContent>
     </Card>
   );
