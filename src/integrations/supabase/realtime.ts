@@ -9,11 +9,12 @@ import { Database } from './types';
 export const enableRealtimeForTable = async (tableName: keyof Database['public']['Tables']) => {
   try {
     // Execute Supabase SQL to enable real-time for the table
+    // Using type assertion to bypass TypeScript restrictions for RPC calls
     const { error } = await supabase.rpc(
-      'supabase_realtime' as any, 
+      'supabase_realtime' as unknown as never, 
       {
         table_name: tableName as string
-      }
+      } as unknown as never
     );
     
     if (error) {
