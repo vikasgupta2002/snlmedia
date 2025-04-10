@@ -3,15 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
+import { Database } from '@/integrations/supabase/types';
 
-interface NewsArticle {
-  id: string;
-  title: string;
-  summary: string;
-  highlights: string;
-  image_url: string;
-  created_at: string;
-}
+type NewsArticle = Database['public']['Tables']['news_articles']['Row'];
 
 const LiveNews = () => {
   const [news, setNews] = useState<NewsArticle[]>([]);
@@ -112,7 +106,7 @@ const LiveNews = () => {
                   </ul>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Published: {new Date(article.created_at).toLocaleString()}
+                  Published: {new Date(article.created_at || '').toLocaleString()}
                 </p>
               </div>
               {article.image_url && (
