@@ -7,18 +7,34 @@ import { Database } from '@/integrations/supabase/types';
 
 type NewsArticle = Database['public']['Tables']['news_articles']['Row'];
 
-const LiveNews = () => {
+interface LiveNewsProps {
+  category?: string;
+  limit?: number;
+}
+
+const LiveNews = ({ category, limit = 10 }: LiveNewsProps) => {
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        // Fetch news from Supabase ordered by creation date (newest first)
-        const { data, error } = await supabase
+        // Build query
+        let query = supabase
           .from('news_articles')
           .select('*')
           .order('created_at', { ascending: false });
+        
+        // Apply category filter if provided
+        if (category) {
+          query = query.eq('category', category);
+        }
+        
+        // Apply limit
+        query = query.limit(limit);
+        
+        // Execute query
+        const { data, error } = await query;
 
         if (error) {
           console.error('Error fetching news:', error);
@@ -35,25 +51,49 @@ const LiveNews = () => {
     fetchNews();
 
     // Set up real-time subscription
-    const channel = supabase
-      .channel('public:news_articles')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'news_articles' 
-        }, 
-        (payload) => {
-          console.log('Real-time update:', payload);
-          fetchNews();
-        }
-      )
-      .subscribe();
+    let channel;
+    
+    if (category) {
+      // Subscribe to category-specific changes
+      channel = supabase
+        .channel(`category-${category}-changes`)
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'news_articles',
+            filter: `category=eq.${category}`
+          }, 
+          (payload) => {
+            console.log(`Real-time update for ${category}:`, payload);
+            fetchNews();
+          }
+        )
+        .subscribe();
+    } else {
+      // Subscribe to all changes
+      channel = supabase
+        .channel('public:news_articles')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'news_articles' 
+          }, 
+          (payload) => {
+            console.log('Real-time update:', payload);
+            fetchNews();
+          }
+        )
+        .subscribe();
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
-  }, []);
+  }, [category, limit]);
 
   // Function to split highlights into an array
   const formatHighlights = (highlights: string): string[] => {
@@ -96,7 +136,14 @@ const LiveNews = () => {
           <Card key={article.id} className="overflow-hidden hover:shadow-md transition-shadow">
             <CardContent className="p-0">
               <div className="p-6">
-                <h2 className="text-2xl font-bold mb-2">{article.title}</h2>
+                <div className="flex justify-between items-start mb-2">
+                  <h2 className="text-2xl font-bold">{article.title}</h2>
+                  {article.category && (
+                    <span className="text-xs font-medium bg-aajtak text-white px-2 py-0.5 rounded-sm ml-2">
+                      {article.category}
+                    </span>
+                  )}
+                </div>
                 <p className="text-gray-600 mb-4">{article.summary}</p>
                 {article.highlights && (
                   <ul className="list-disc list-inside mb-4 space-y-1">

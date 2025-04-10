@@ -2,17 +2,16 @@
 import React from 'react';
 import Header from '@/components/Header';
 import BreakingNews from '@/components/BreakingNews';
-import NewsCard from '@/components/NewsCard';
 import TrendingNews from '@/components/TrendingNews';
 import Footer from '@/components/Footer';
-import { NewsItem } from '@/data/newsData';
+import LiveNews from '@/components/LiveNews';
 
 interface CategoryPageProps {
   title: string;
-  news: NewsItem[];
+  category: string;
 }
 
-const CategoryPage = ({ title, news }: CategoryPageProps) => {
+const CategoryPage = ({ title, category }: CategoryPageProps) => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -23,18 +22,7 @@ const CategoryPage = ({ title, news }: CategoryPageProps) => {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {news.map((item) => (
-                  <NewsCard
-                    key={item.id}
-                    id={item.id}
-                    title={item.title}
-                    image={item.image}
-                    category={item.category}
-                    timestamp={item.timestamp}
-                  />
-                ))}
-              </div>
+              <LiveNews category={category} limit={10} />
             </div>
             
             <div className="space-y-8">

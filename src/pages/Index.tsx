@@ -2,18 +2,10 @@
 import React from 'react';
 import Header from '@/components/Header';
 import BreakingNews from '@/components/BreakingNews';
-import FeaturedSlider from '@/components/FeaturedSlider';
-import NewsSection from '@/components/NewsSection';
+import LatestNewsSlider from '@/components/LatestNewsSlider';
+import CategoryNews from '@/components/CategoryNews';
 import TrendingNews from '@/components/TrendingNews';
 import Footer from '@/components/Footer';
-import { 
-  nationalNews,
-  internationalNews,
-  sportsNews,
-  entertainmentNews,
-  businessNews,
-  technologyNews
-} from '@/data/newsData';
 
 const Index = () => {
   return (
@@ -23,76 +15,46 @@ const Index = () => {
       <main className="flex-grow">
         <div className="news-container py-6">
           <div className="mb-8">
-            <FeaturedSlider />
+            <LatestNewsSlider />
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <NewsSection 
-                title="National" 
-                path="/national" 
-                news={nationalNews}
+              <CategoryNews 
+                category="National" 
+                containerId="national-news"
               />
               
-              <NewsSection 
-                title="International" 
-                path="/international" 
-                news={internationalNews}
+              <CategoryNews 
+                category="International" 
+                containerId="international-news"
               />
               
-              <NewsSection 
-                title="Sports" 
-                path="/sports" 
-                news={sportsNews}
+              <CategoryNews 
+                category="Sports" 
+                containerId="sports-news"
               />
               
-              <NewsSection 
-                title="Entertainment" 
-                path="/entertainment" 
-                news={entertainmentNews}
+              <CategoryNews 
+                category="Entertainment" 
+                containerId="entertainment-news"
               />
             </div>
             
             <div className="space-y-8">
               <TrendingNews />
               
-              <div>
-                <h2 className="news-section-title">Business</h2>
-                <div className="space-y-4">
-                  {businessNews.slice(0, 2).map(item => (
-                    <div key={item.id} className="flex gap-4">
-                      <img 
-                        src={item.image} 
-                        alt={item.title}
-                        className="w-24 h-24 object-cover rounded-md"
-                      />
-                      <div>
-                        <h3 className="font-semibold line-clamp-2 leading-tight text-sm">{item.title}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">{item.timestamp}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <CategoryNews 
+                category="Business" 
+                containerId="business-news"
+                limit={2}
+              />
               
-              <div>
-                <h2 className="news-section-title">Technology</h2>
-                <div className="space-y-4">
-                  {technologyNews.slice(0, 2).map(item => (
-                    <div key={item.id} className="flex gap-4">
-                      <img 
-                        src={item.image} 
-                        alt={item.title}
-                        className="w-24 h-24 object-cover rounded-md"
-                      />
-                      <div>
-                        <h3 className="font-semibold line-clamp-2 leading-tight text-sm">{item.title}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">{item.timestamp}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <CategoryNews 
+                category="Technology" 
+                containerId="technology-news"
+                limit={2}
+              />
             </div>
           </div>
         </div>
