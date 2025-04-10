@@ -1,11 +1,12 @@
 
 import { supabase } from './client';
+import { Database } from './types';
 
 /**
  * Enable real-time updates for a specific table
  * @param tableName - Name of the table to enable real-time for
  */
-export const enableRealtimeForTable = async (tableName: string) => {
+export const enableRealtimeForTable = async (tableName: keyof Database['public']['Tables']) => {
   try {
     // Execute Supabase SQL to enable real-time for the table
     const { error } = await supabase.rpc('supabase_realtime', {
@@ -29,7 +30,7 @@ export const enableRealtimeForTable = async (tableName: string) => {
  * @returns Cleanup function to unsubscribe
  */
 export const subscribeToTable = (
-  tableName: string, 
+  tableName: keyof Database['public']['Tables'], 
   callback: (payload: any) => void
 ) => {
   const channel = supabase
@@ -38,7 +39,7 @@ export const subscribeToTable = (
       { 
         event: '*', 
         schema: 'public', 
-        table: tableName 
+        table: tableName as string
       }, 
       payload => callback(payload)
     )
