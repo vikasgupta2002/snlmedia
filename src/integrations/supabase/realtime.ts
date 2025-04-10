@@ -9,9 +9,12 @@ import { Database } from './types';
 export const enableRealtimeForTable = async (tableName: keyof Database['public']['Tables']) => {
   try {
     // Execute Supabase SQL to enable real-time for the table
-    const { error } = await supabase.rpc('supabase_realtime', {
-      table_name: tableName
-    });
+    const { error } = await supabase.rpc(
+      'supabase_realtime' as any, 
+      {
+        table_name: tableName as string
+      }
+    );
     
     if (error) {
       console.error(`Error enabling real-time for ${tableName}:`, error);
