@@ -138,11 +138,9 @@ const LiveNews = ({ category, limit = 10 }: LiveNewsProps) => {
               <div className="p-6">
                 <div className="flex justify-between items-start mb-2">
                   <h2 className="text-2xl font-bold">{article.title}</h2>
-                  {article.category && (
-                    <span className="text-xs font-medium bg-aajtak text-white px-2 py-0.5 rounded-sm ml-2">
-                      {article.category}
-                    </span>
-                  )}
+                  <span className="text-xs font-medium bg-aajtak text-white px-2 py-0.5 rounded-sm ml-2">
+                    {article.category || 'News'}
+                  </span>
                 </div>
                 <p className="text-gray-600 mb-4">{article.summary}</p>
                 {article.highlights && (
