@@ -11,7 +11,11 @@ import { Database } from '@/integrations/supabase/types';
 
 type NewsArticle = Database['public']['Tables']['news_articles']['Row'];
 
-const LatestNewsSlider = () => {
+interface LatestNewsSliderProps {
+  isBreaking?: boolean;
+}
+
+const LatestNewsSlider = ({ isBreaking = false }: LatestNewsSliderProps) => {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -27,11 +31,18 @@ const LatestNewsSlider = () => {
   useEffect(() => {
     const fetchLatestArticles = async () => {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('news_articles')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(5);
+          
+        // If isBreaking is true, filter by is_breaking
+        if (isBreaking) {
+          query = query.eq('is_breaking', true);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
           console.error('Error fetching latest news:', error);
@@ -74,7 +85,7 @@ const LatestNewsSlider = () => {
       clearInterval(interval);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [isBreaking]);
 
   // Loading skeleton
   if (loading) {

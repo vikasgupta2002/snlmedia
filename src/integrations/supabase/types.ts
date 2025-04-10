@@ -16,6 +16,8 @@ export type Database = {
           highlights: string | null
           id: string
           image_url: string | null
+          is_breaking: boolean | null
+          is_trending: boolean | null
           summary: string | null
           title: string
         }
@@ -25,6 +27,8 @@ export type Database = {
           highlights?: string | null
           id?: string
           image_url?: string | null
+          is_breaking?: boolean | null
+          is_trending?: boolean | null
           summary?: string | null
           title?: string
         }
@@ -34,6 +38,8 @@ export type Database = {
           highlights?: string | null
           id?: string
           image_url?: string | null
+          is_breaking?: boolean | null
+          is_trending?: boolean | null
           summary?: string | null
           title?: string
         }
